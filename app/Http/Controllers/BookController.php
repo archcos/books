@@ -45,12 +45,28 @@ Class BookController extends Controller {
             return $this->errorResponse("Book id not found", Response::HTTP_NOT_FOUND);
         }
 
-    public function update(Request $request, $id)  {
-        $book = Book::findOrFail($id);
-        $book->update($request->all());
-    
-            return $this->successResponse($book, Response::HTTP_CREATED);
+   public function update(Request $request,$id)
+        {
+           $rules = [
+            'bookname' => 'max:150',
+            'yearpublish' => 'max:4',
+            'authorid' => 'numeric|min:1|not_in:0',
+           ];
+       
+           $this->validate($request, $rules);
+       
+           $book = Book::findOrFail($id);
+       
+           $book->fill($request->all());
+       
+           if ($book->isClean()) {
+               return $this->errorResponse('At least one value must change', Response::HTTP_UNPROCESSABLE_ENTITY);
+           }
+       
+           $book->save();
+           return $this->successResponse($book);
         }
+
 
     public function delete($id, Request $request)
         {
